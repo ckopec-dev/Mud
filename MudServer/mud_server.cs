@@ -167,10 +167,11 @@ namespace MudServer
             }
         }
         
-        public async Task<string> ReadLineAsync()
+        public async Task<string?> ReadLineAsync()
         {
             try
             {
+                if (Reader.EndOfStream) return null;    
                 return await Reader.ReadLineAsync();
             }
             catch (Exception)
@@ -345,6 +346,7 @@ namespace MudServer
             // Player attacks monster
             int damage = new Random().Next(10, 21); // 10-20 damage
             monster.TakeDamage(damage);
+            if (room == null) return;
             room.BroadcastMessage($"{player.Name} attacks {monster.Name} for {damage} damage!");
             
             if (!monster.IsAlive)
@@ -436,9 +438,11 @@ namespace MudServer
                 return;
             }
             
-            room.Items.Remove(item);
+            if (room != null)
+                room.Items.Remove(item);
             player.Inventory.Add(item);
-            room.BroadcastMessage($"{player.Name} picks up {item}.");
+            if (room != null)
+                room.BroadcastMessage($"{player.Name} picks up {item}.");
             player.SendMessage($"You pick up {item}.");
         }
     }
@@ -475,14 +479,15 @@ namespace MudServer
         public override void Execute(Player player, string[] args)
         {
             player.SendMessage("Goodbye!");
-            MudServer.Instance.DisconnectPlayer(player.Name);
+            if (MudServer.Instance != null)
+                MudServer.Instance.DisconnectPlayer(player.Name);
         }
     }
     
     // Main server class
     public class MudServer
     {
-        public static MudServer Instance { get; private set; }
+        public static MudServer? Instance { get; private set; }
         
         private TcpListener _listener;
         private CancellationTokenSource _cancellationTokenSource;

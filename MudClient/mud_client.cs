@@ -9,17 +9,17 @@ namespace MudClient
 {
     public class MudClient
     {
-        private TcpClient _client;
-        private NetworkStream _stream;
-        private StreamWriter _writer;
-        private StreamReader _reader;
-        private CancellationTokenSource _cancellationTokenSource;
+        private TcpClient? _client;
+        private NetworkStream? _stream;
+        private StreamWriter? _writer;
+        private StreamReader? _reader;
+        private readonly CancellationTokenSource _cancellationTokenSource;
         private bool _isConnected;
-        private string _serverHost;
+        private string? _serverHost;
         private int _serverPort;
         
         // Console color management
-        private readonly object _consoleLock = new object();
+        private readonly Lock _consoleLock = new();
         
         public MudClient()
         {
@@ -69,7 +69,8 @@ namespace MudClient
             {
                 while (_isConnected && !_cancellationTokenSource.Token.IsCancellationRequested)
                 {
-                    string message = await _reader.ReadLineAsync();
+                    if (_reader == null) break;
+                    string? message = await _reader.ReadLineAsync();
                     if (message == null)
                     {
                         WriteToConsole("Server disconnected.", ConsoleColor.Red);
@@ -174,13 +175,13 @@ namespace MudClient
                 Console.Write("> ");
                 Console.ResetColor();
                 
-                string input = Console.ReadLine();
+                string? input = Console.ReadLine();
                 
                 if (string.IsNullOrWhiteSpace(input))
                     continue;
                 
                 // Handle client commands
-                if (input.StartsWith("/"))
+                if (input.StartsWith('/'))
                 {
                     await HandleClientCommand(input);
                     continue;
@@ -191,6 +192,7 @@ namespace MudClient
                 {
                     try
                     {
+                        if (_writer == null) continue;
                         await _writer.WriteLineAsync(input);
                     }
                     catch (Exception ex)
@@ -325,15 +327,19 @@ namespace MudClient
         {
             try
             {
-                _isConnected = false;
-                _cancellationTokenSource?.Cancel();
+                await Task.Run(() => 
+                {
+                    _isConnected = false;
+                    _cancellationTokenSource?.Cancel();
+
+                    _writer?.Close();
+                    _reader?.Close();
+                    _stream?.Close();
+                    _client?.Close();
+
+                    WriteToConsole("Disconnected from server.", ConsoleColor.Yellow);
+                });
                 
-                _writer?.Close();
-                _reader?.Close();
-                _stream?.Close();
-                _client?.Close();
-                
-                WriteToConsole("Disconnected from server.", ConsoleColor.Yellow);
             }
             catch (Exception ex)
             {
@@ -391,7 +397,7 @@ namespace MudClient
             // Parse command line arguments
             if (args.Length >= 1)
             {
-                if (args[0].Contains(":"))
+                if (args[0].Contains(':'))
                 {
                     string[] parts = args[0].Split(':');
                     host = parts[0];
