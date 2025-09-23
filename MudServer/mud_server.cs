@@ -24,8 +24,8 @@ namespace MudServer
         public int Experience { get; set; } = 0;
         public int Gold { get; set; } = 100;
         public string CurrentRoom { get; set; } = "town_square";
-        public List<string> Inventory { get; set; } = new();
-        public Dictionary<string, string> Equipment { get; set; } = new();
+        public List<string> Inventory { get; set; } = [];
+        public Dictionary<string, string> Equipment { get; set; } = [];
         public PlayerConnection Connection { get; set; }
         
         public Player(PlayerConnection connection)
@@ -83,10 +83,10 @@ namespace MudServer
         public string Id { get; set; } = "";
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
-        public Dictionary<string, string> Exits { get; set; } = new();
-        public List<string> Items { get; set; } = new();
-        public List<Monster> Monsters { get; set; } = new();
-        public HashSet<string> Players { get; set; } = new();
+        public Dictionary<string, string> Exits { get; set; } = [];
+        public List<string> Items { get; set; } = [];
+        public List<Monster> Monsters { get; set; } = [];
+        public HashSet<string> Players { get; set; } = [];
         
         public void AddPlayer(string playerName)
         {
@@ -101,11 +101,13 @@ namespace MudServer
         public void BroadcastMessage(string message, string excludePlayer = "")
         {
             var server = MudServer.Instance;
+            if (server == null) return;
+
             foreach (var playerName in Players)
             {
-                if (playerName != excludePlayer && server.Players.ContainsKey(playerName))
+                if (playerName != excludePlayer && server.Players.TryGetValue(playerName, out Player? value))
                 {
-                    server.Players[playerName].SendMessage(message);
+                    value.SendMessage(message);
                 }
             }
         }
@@ -119,7 +121,7 @@ namespace MudServer
         public int AttackPower { get; set; } = 10;
         public int Experience { get; set; } = 25;
         public int Gold { get; set; } = 10;
-        public List<string> Loot { get; set; } = new();
+        public List<string> Loot { get; set; } = [];
         public bool IsAlive => Health > 0;
         
         public void TakeDamage(int damage)
@@ -134,7 +136,7 @@ namespace MudServer
         public string Description { get; set; } = "";
         public string Type { get; set; } = ""; // weapon, armor, consumable, misc
         public int Value { get; set; } = 0;
-        public Dictionary<string, int> Stats { get; set; } = new();
+        public Dictionary<string, int> Stats { get; set; } = [];
     }
     
     // Network connection handling
@@ -163,7 +165,7 @@ namespace MudServer
             catch (Exception)
             {
                 // Connection lost
-                MudServer.Instance.DisconnectPlayer(PlayerId);
+                MudServer.Instance?.DisconnectPlayer(PlayerId);
             }
         }
         
@@ -215,6 +217,7 @@ namespace MudServer
             }
             
             string message = string.Join(" ", args);
+            if (MudServer.Instance == null) return; 
             var room = MudServer.Instance.GetRoom(player.CurrentRoom);
             room?.BroadcastMessage($"{player.Name} says: {message}", player.Name);
             player.SendMessage($"You say: {message}");
@@ -228,6 +231,7 @@ namespace MudServer
         
         public override void Execute(Player player, string[] args)
         {
+            if (MudServer.Instance == null) return;
             var room = MudServer.Instance.GetRoom(player.CurrentRoom);
             if (room == null) return;
             
@@ -289,6 +293,7 @@ namespace MudServer
             }
             
             string direction = args[0].ToLower();
+            if (MudServer.Instance == null) return;
             var currentRoom = MudServer.Instance.GetRoom(player.CurrentRoom);
             
             if (currentRoom?.Exits.ContainsKey(direction) != true)
@@ -315,7 +320,7 @@ namespace MudServer
             newRoom.BroadcastMessage($"{player.Name} arrives.", player.Name);
             
             // Show new room
-            new LookCommand().Execute(player, new string[0]);
+            new LookCommand().Execute(player, []);
         }
     }
     
@@ -333,9 +338,10 @@ namespace MudServer
             }
             
             string targetName = string.Join(" ", args).ToLower();
+            if (MudServer.Instance == null) return;
             var room = MudServer.Instance.GetRoom(player.CurrentRoom);
             var monster = room?.Monsters.FirstOrDefault(m => 
-                m.Name.ToLower().Contains(targetName) && m.IsAlive);
+                m.Name.Contains(targetName, StringComparison.CurrentCultureIgnoreCase) && m.IsAlive);
             
             if (monster == null)
             {
@@ -429,8 +435,9 @@ namespace MudServer
             }
             
             string itemName = string.Join(" ", args).ToLower();
+            if (MudServer.Instance == null) return;
             var room = MudServer.Instance.GetRoom(player.CurrentRoom);
-            var item = room?.Items.FirstOrDefault(i => i.ToLower().Contains(itemName));
+            var item = room?.Items.FirstOrDefault(i => i.Contains(itemName, StringComparison.CurrentCultureIgnoreCase));
             
             if (item == null)
             {
@@ -438,11 +445,9 @@ namespace MudServer
                 return;
             }
             
-            if (room != null)
-                room.Items.Remove(item);
+            room?.Items.Remove(item);
             player.Inventory.Add(item);
-            if (room != null)
-                room.BroadcastMessage($"{player.Name} picks up {item}.");
+            room?.BroadcastMessage($"{player.Name} picks up {item}.");
             player.SendMessage($"You pick up {item}.");
         }
     }
@@ -457,6 +462,7 @@ namespace MudServer
             var sb = new StringBuilder();
             sb.AppendLine("=== Available Commands ===");
             
+            if (MudServer.Instance == null) return;
             foreach (var cmd in MudServer.Instance.Commands.Values)
             {
                 sb.AppendLine($"{cmd.Name.PadRight(12)} - {cmd.Description}");
@@ -479,8 +485,7 @@ namespace MudServer
         public override void Execute(Player player, string[] args)
         {
             player.SendMessage("Goodbye!");
-            if (MudServer.Instance != null)
-                MudServer.Instance.DisconnectPlayer(player.Name);
+            MudServer.Instance?.DisconnectPlayer(player.Name);
         }
     }
     
@@ -489,15 +494,16 @@ namespace MudServer
     {
         public static MudServer? Instance { get; private set; }
         
-        private TcpListener _listener;
-        private CancellationTokenSource _cancellationTokenSource;
-        private readonly object _playersLock = new object();
+        private TcpListener? _listener;
+        private CancellationTokenSource? _cancellationTokenSource;
+        private readonly Lock _playersLock = new();
         
         public ConcurrentDictionary<string, Player> Players { get; } = new();
-        public Dictionary<string, Room> Rooms { get; } = new();
-        public Dictionary<string, Command> Commands { get; } = new();
-        public Dictionary<string, Item> Items { get; } = new();
-        
+        public Dictionary<string, Room> Rooms { get; } = [];
+        public Dictionary<string, Command> Commands { get; } = [];
+        public Dictionary<string, Item> Items { get; } = [];
+        private static readonly string[] sourceArray = ["n", "s", "e", "w"];
+
         private MudServer()
         {
             Instance = this;
@@ -565,7 +571,7 @@ namespace MudServer
                 Name = "Town Square",
                 Description = "A bustling town square with a fountain in the center. Merchants hawk their wares and adventurers gather here.",
                 Exits = new() { ["north"] = "forest", ["east"] = "shop", ["west"] = "tavern" },
-                Items = new() { "potion" }
+                Items = ["potion"]
             };
             
             // Forest
@@ -575,8 +581,8 @@ namespace MudServer
                 Name = "Dark Forest",
                 Description = "A dense, dark forest. Strange sounds echo from the shadows.",
                 Exits = new() { ["south"] = "town_square", ["north"] = "cave" },
-                Monsters = new()
-                {
+                Monsters =
+                [
                     new Monster
                     {
                         Name = "Wolf",
@@ -585,9 +591,9 @@ namespace MudServer
                         AttackPower = 15,
                         Experience = 15,
                         Gold = 5,
-                        Loot = new() { "wolf_pelt" }
+                        Loot = ["wolf_pelt"]
                     }
-                }
+                ]
             };
             
             // Cave
@@ -597,9 +603,9 @@ namespace MudServer
                 Name = "Mysterious Cave",
                 Description = "A damp cave with glittering crystals on the walls. Something lurks in the depths.",
                 Exits = new() { ["south"] = "forest" },
-                Items = new() { "sword" },
-                Monsters = new()
-                {
+                Items = ["sword"],
+                Monsters =
+                [
                     new Monster
                     {
                         Name = "Goblin",
@@ -608,9 +614,9 @@ namespace MudServer
                         AttackPower = 12,
                         Experience = 30,
                         Gold = 15,
-                        Loot = new() { "goblin_ear", "rusty_dagger" }
+                        Loot = ["goblin_ear", "rusty_dagger"]
                     }
-                }
+                ]
             };
             
             // Shop
@@ -620,7 +626,7 @@ namespace MudServer
                 Name = "Weapon Shop",
                 Description = "A cluttered weapon shop filled with gleaming blades and sturdy armor.",
                 Exits = new() { ["west"] = "town_square" },
-                Items = new() { "armor", "sword" }
+                Items = ["armor", "sword"]
             };
             
             // Tavern
@@ -630,11 +636,11 @@ namespace MudServer
                 Name = "The Prancing Pony",
                 Description = "A cozy tavern with a warm fire and the smell of ale in the air.",
                 Exits = new() { ["east"] = "town_square" },
-                Items = new() { "potion", "bread" }
+                Items = ["potion", "bread"]
             };
         }
         
-        public Room GetRoom(string roomId)
+        public Room? GetRoom(string roomId)
         {
             Rooms.TryGetValue(roomId, out var room);
             return room;
@@ -663,6 +669,7 @@ namespace MudServer
         
         private async Task AcceptConnectionsAsync()
         {
+            if (_listener == null || _cancellationTokenSource == null) return;
             while (!_cancellationTokenSource.Token.IsCancellationRequested)
             {
                 try
@@ -691,7 +698,7 @@ namespace MudServer
                 connection.SendMessage("Welcome to the MUD Server!");
                 connection.SendMessage("Enter your character name: ");
                 
-                string playerName = await connection.ReadLineAsync();
+                string? playerName = await connection.ReadLineAsync();
                 if (string.IsNullOrWhiteSpace(playerName))
                 {
                     connection.SendMessage("Invalid name. Disconnecting.");
@@ -727,13 +734,14 @@ namespace MudServer
                 }
                 
                 connection.SendMessage($"Welcome, {playerName}!");
-                new LookCommand().Execute(Players[playerName], new string[0]);
-                new HelpCommand().Execute(Players[playerName], new string[0]);
+                new LookCommand().Execute(Players[playerName], []);
+                new HelpCommand().Execute(Players[playerName], []);
                 
                 // Command loop
+                if (_cancellationTokenSource == null) return;
                 while (!_cancellationTokenSource.Token.IsCancellationRequested)
                 {
-                    string input = await connection.ReadLineAsync();
+                    string? input = await connection.ReadLineAsync();
                     if (input == null) break;
                     
                     ProcessCommand(playerName, input.Trim());
@@ -757,7 +765,7 @@ namespace MudServer
             
             string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             string commandName = parts[0].ToLower();
-            string[] args = parts.Length > 1 ? parts[1..] : new string[0];
+            string[] args = parts.Length > 1 ? parts[1..] : [];
             
             // Handle shortcuts
             commandName = commandName switch
@@ -772,7 +780,7 @@ namespace MudServer
             };
             
             // Special handling for direction shortcuts
-            if (new[] { "n", "s", "e", "w" }.Contains(parts[0].ToLower()))
+            if (sourceArray.Contains(parts[0].ToLower()))
             {
                 string direction = parts[0].ToLower() switch
                 {
@@ -782,7 +790,7 @@ namespace MudServer
                     "w" => "west",
                     _ => parts[0]
                 };
-                args = new[] { direction };
+                args = [direction];
             }
             
             if (Commands.TryGetValue(commandName, out var command))
@@ -822,6 +830,7 @@ namespace MudServer
         
         private async Task GameLoopAsync()
         {
+            if (_cancellationTokenSource == null) return;   
             while (!_cancellationTokenSource.Token.IsCancellationRequested)
             {
                 try
@@ -855,7 +864,7 @@ namespace MudServer
                                     AttackPower = 15,
                                     Experience = 15,
                                     Gold = 5,
-                                    Loot = new() { "wolf_pelt" }
+                                    Loot = ["wolf_pelt"]
                                 });
                                 room.BroadcastMessage("A wolf emerges from the shadows!");
                             }
@@ -873,23 +882,26 @@ namespace MudServer
         
         public async Task StopAsync()
         {
-            Console.WriteLine("Shutting down server...");
-            
-            _cancellationTokenSource?.Cancel();
-            
-            // Disconnect all players
-            var playerNames = Players.Keys.ToList();
-            foreach (var name in playerNames)
+            await Task.Run(() =>
             {
-                DisconnectPlayer(name);
-            }
-            
-            _listener?.Stop();
-            Console.WriteLine("Server stopped.");
+                Console.WriteLine("Shutting down server...");
+
+                _cancellationTokenSource?.Cancel();
+
+                // Disconnect all players
+                var playerNames = Players.Keys.ToList();
+                foreach (var name in playerNames)
+                {
+                    DisconnectPlayer(name);
+                }
+
+                _listener?.Stop();
+                Console.WriteLine("Server stopped.");
+            });
         }
         
         // Entry point
-        public static async Task Main(string[] args)
+        public static async Task Main()
         {
             var server = new MudServer();
             await server.StartAsync();
