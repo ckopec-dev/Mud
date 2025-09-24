@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "MudServer\\MudServer.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "MudClient\\MudClient.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
