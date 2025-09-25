@@ -15,8 +15,8 @@ namespace MudServer.Commands
             }
 
             string message = string.Join(" ", args);
-            if (MudServer.Instance == null) return;
-            var room = MudServer.Instance.GetRoom(player.CurrentRoom);
+            if (Server.Instance == null) return;
+            var room = Server.Instance.GetRoom(player.CurrentRoom);
             room?.BroadcastMessage($"{player.Name} says: {message}", player.Name);
             player.SendMessage($"You say: {message}");
         }

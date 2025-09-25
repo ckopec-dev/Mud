@@ -9,8 +9,8 @@ namespace MudServer.Commands
 
         public override void Execute(Player player, string[] args)
         {
-            if (MudServer.Instance == null) return;
-            var room = MudServer.Instance.GetRoom(player.CurrentRoom);
+            if (Server.Instance == null) return;
+            var room = Server.Instance.GetRoom(player.CurrentRoom);
             if (room == null) return;
 
             var sb = new StringBuilder();

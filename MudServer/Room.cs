@@ -23,7 +23,7 @@ namespace MudServer
 
         public void BroadcastMessage(string message, string excludePlayer = "")
         {
-            var server = MudServer.Instance;
+            var server = Server.Instance;
             if (server == null) return;
 
             foreach (var playerName in Players)

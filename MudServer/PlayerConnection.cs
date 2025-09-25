@@ -29,7 +29,7 @@ namespace MudServer
             catch (Exception)
             {
                 // Connection lost
-                MudServer.Instance?.DisconnectPlayer(PlayerId);
+                Server.Instance?.DisconnectPlayer(PlayerId);
             }
         }
 

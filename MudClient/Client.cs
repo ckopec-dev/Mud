@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MudClient
 {
-    public class MudClient
+    public class Client
     {
         private TcpClient? _client;
         private NetworkStream? _stream;
@@ -21,7 +21,7 @@ namespace MudClient
         // Console color management
         private readonly Lock _consoleLock = new();
 
-        public MudClient()
+        public Client()
         {
             _cancellationTokenSource = new CancellationTokenSource();
         }

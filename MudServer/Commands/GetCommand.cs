@@ -15,8 +15,8 @@ namespace MudServer.Commands
             }
 
             string itemName = string.Join(" ", args).ToLower();
-            if (MudServer.Instance == null) return;
-            var room = MudServer.Instance.GetRoom(player.CurrentRoom);
+            if (Server.Instance == null) return;
+            var room = Server.Instance.GetRoom(player.CurrentRoom);
             var item = room?.Items.FirstOrDefault(i => i.Contains(itemName, StringComparison.CurrentCultureIgnoreCase));
 
             if (item == null)

@@ -12,8 +12,8 @@ namespace MudServer.Commands
             var sb = new StringBuilder();
             sb.AppendLine("=== Available Commands ===");
 
-            if (MudServer.Instance == null) return;
-            foreach (var cmd in MudServer.Instance.Commands.Values)
+            if (Server.Instance == null) return;
+            foreach (var cmd in Server.Instance.Commands.Values)
             {
                 sb.AppendLine($"{cmd.Name.PadRight(12)} - {cmd.Description}");
             }

@@ -15,8 +15,8 @@ namespace MudServer.Commands
             }
 
             string direction = args[0].ToLower();
-            if (MudServer.Instance == null) return;
-            var currentRoom = MudServer.Instance.GetRoom(player.CurrentRoom);
+            if (Server.Instance == null) return;
+            var currentRoom = Server.Instance.GetRoom(player.CurrentRoom);
 
             if (currentRoom?.Exits.ContainsKey(direction) != true)
             {
@@ -25,7 +25,7 @@ namespace MudServer.Commands
             }
 
             string newRoomId = currentRoom.Exits[direction];
-            var newRoom = MudServer.Instance.GetRoom(newRoomId);
+            var newRoom = Server.Instance.GetRoom(newRoomId);
 
             if (newRoom == null)
             {

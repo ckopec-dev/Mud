@@ -9,7 +9,7 @@ namespace MudServer.Commands
         public override void Execute(Player player, string[] args)
         {
             player.SendMessage("Goodbye!");
-            MudServer.Instance?.DisconnectPlayer(player.Name);
+            Server.Instance?.DisconnectPlayer(player.Name);
         }
     }
 }

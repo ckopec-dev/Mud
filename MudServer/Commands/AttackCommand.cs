@@ -15,8 +15,8 @@ namespace MudServer.Commands
             }
 
             string targetName = string.Join(" ", args).ToLower();
-            if (MudServer.Instance == null) return;
-            var room = MudServer.Instance.GetRoom(player.CurrentRoom);
+            if (Server.Instance == null) return;
+            var room = Server.Instance.GetRoom(player.CurrentRoom);
             var monster = room?.Monsters.FirstOrDefault(m =>
                 m.Name.Contains(targetName, StringComparison.CurrentCultureIgnoreCase) && m.IsAlive);
 

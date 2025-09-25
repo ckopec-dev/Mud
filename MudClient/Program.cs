@@ -8,11 +8,11 @@ namespace MudClient
         // Enhanced main method with argument parsing
         public static async Task Main(string[] args)
         {
-            var mudClient = new MudClient();
+            var client = new Client();
 
             Console.Title = "MUD Client";
 
-            MudClient.WriteWelcomeMessage();
+            Client.WriteWelcomeMessage();
 
             string host = "localhost";
             int port = 4000;
@@ -40,7 +40,7 @@ namespace MudClient
                 port = portArg;
             }
 
-            var client = new MudClient();
+            client = new Client();
 
             // Handle Ctrl+C gracefully
             Console.CancelKeyPress += async (sender, e) =>
