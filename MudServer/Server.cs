@@ -1,4 +1,5 @@
 ﻿using MudServer.Commands;
+using NLog;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -19,6 +20,7 @@ namespace MudServer
         public Dictionary<string, Command> Commands { get; } = [];
         public Dictionary<string, Item> Items { get; } = [];
         private static readonly string[] sourceArray = ["n", "s", "e", "w"];
+        public Logger Logger = LogManager.Setup().LoadConfigurationFromFile("nlog-web.config").GetCurrentClassLogger();
 
         public Server()
         {
@@ -415,7 +417,5 @@ namespace MudServer
                 Console.WriteLine("Server stopped.");
             });
         }
-
-
     }
 }

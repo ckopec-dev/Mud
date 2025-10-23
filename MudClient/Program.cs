@@ -1,3 +1,4 @@
+using NLog;
 using System.Net.Sockets;
 using System.Text;
 
@@ -8,6 +9,10 @@ namespace MudClient
         // Enhanced main method with argument parsing
         public static async Task Main(string[] args)
         {
+            // Set up logging
+            var Logger = NLog.LogManager.Setup().LoadConfigurationFromFile("nlog-console.config").GetCurrentClassLogger();
+            Logger.Info("Application started.");
+
             var client = new Client();
 
             Console.Title = "MUD Client";
