@@ -5,6 +5,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>f058444b-3e94-4b2c-97aa-c0ed5bc34c43</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,10 +19,6 @@
     <None Update="nlog-console.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Settings\" />
   </ItemGroup>
 
 </Project>
