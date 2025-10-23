@@ -14,14 +14,15 @@ namespace MudServer
         private TcpListener? _listener;
         private CancellationTokenSource? _cancellationTokenSource;
         private readonly Lock _playersLock = new();
+        private static readonly string[] _directionArray = ["n", "s", "e", "w"];
 
-        public ConcurrentDictionary<string, Player> Players { get; } = new();
-        public Dictionary<string, Room> Rooms { get; } = [];
-        public Dictionary<string, Command> Commands { get; } = [];
-        public Dictionary<string, Item> Items { get; } = [];
-        private static readonly string[] sourceArray = ["n", "s", "e", "w"];
         public Logger Logger = LogManager.Setup().LoadConfigurationFromFile("nlog-web.config").GetCurrentClassLogger();
+        public ConcurrentDictionary<string, Player> Players { get; } = new();
+        public Dictionary<string, Command> Commands { get; } = [];
 
+        public Dictionary<string, Item> Items { get; } = [];
+        public Dictionary<string, Room> Rooms { get; } = [];
+        
         public Server()
         {
             Instance = this;
@@ -298,7 +299,7 @@ namespace MudServer
             };
 
             // Special handling for direction shortcuts
-            if (sourceArray.Contains(parts[0].ToLower()))
+            if (_directionArray.Contains(parts[0].ToLower()))
             {
                 string direction = parts[0].ToLower() switch
                 {
