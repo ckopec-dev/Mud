@@ -20,15 +20,15 @@ namespace MudServer
         public ConcurrentDictionary<string, Player> Players { get; } = new();
         public Dictionary<string, Command> Commands { get; } = [];
 
-        public Dictionary<string, Item> Items { get; } = [];
+        //public Dictionary<string, Item> Items { get; } = [];
         public Dictionary<string, Room> Rooms { get; } = [];
         
         public Server()
         {
             Instance = this;
             InitializeCommands();
+            //InitializeItems();
             InitializeWorld();
-            InitializeItems();
         }
 
         private void InitializeCommands()
@@ -51,35 +51,35 @@ namespace MudServer
             }
         }
 
-        private void InitializeItems()
-        {
-            Items["sword"] = new Item
-            {
-                Name = "Iron Sword",
-                Description = "A sturdy iron sword",
-                Type = "weapon",
-                Value = 50,
-                Stats = new() { ["attack"] = 15 }
-            };
+        //private void InitializeItems()
+        //{
+        //    Items["sword"] = new Item
+        //    {
+        //        Name = "Iron Sword",
+        //        Description = "A sturdy iron sword",
+        //        Type = "weapon",
+        //        Value = 50,
+        //        Stats = new() { ["attack"] = 15 }
+        //    };
 
-            Items["armor"] = new Item
-            {
-                Name = "Leather Armor",
-                Description = "Basic leather protection",
-                Type = "armor",
-                Value = 30,
-                Stats = new() { ["defense"] = 10 }
-            };
+        //    Items["armor"] = new Item
+        //    {
+        //        Name = "Leather Armor",
+        //        Description = "Basic leather protection",
+        //        Type = "armor",
+        //        Value = 30,
+        //        Stats = new() { ["defense"] = 10 }
+        //    };
 
-            Items["potion"] = new Item
-            {
-                Name = "Health Potion",
-                Description = "Restores 30 health",
-                Type = "consumable",
-                Value = 20,
-                Stats = new() { ["heal"] = 30 }
-            };
-        }
+        //    Items["potion"] = new Item
+        //    {
+        //        Name = "Health Potion",
+        //        Description = "Restores 30 health",
+        //        Type = "consumable",
+        //        Value = 20,
+        //        Stats = new() { ["heal"] = 30 }
+        //    };
+        //}
 
         private void InitializeWorld()
         {

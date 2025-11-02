@@ -27,5 +27,7 @@ namespace MudServer.DAL
         {
             base.OnModelCreating(modelBuilder);
         }
+
+        public virtual DbSet<Item> Items { get; set; }
     }
 }

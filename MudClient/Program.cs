@@ -1,6 +1,4 @@
 using NLog;
-using System.Net.Sockets;
-using System.Text;
 
 namespace MudClient
 {
