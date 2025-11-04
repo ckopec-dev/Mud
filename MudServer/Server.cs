@@ -1,4 +1,7 @@
-﻿using MudServer.Commands;
+﻿using Microsoft.Extensions.Configuration;
+using MudServer.Commands;
+using MudServer.DAL;
+using MudServer.Settings;
 using NLog;
 using System.Collections.Concurrent;
 using System.Net;
@@ -19,14 +22,22 @@ namespace MudServer
         public Logger Logger = LogManager.Setup().LoadConfigurationFromFile("nlog-web.config").GetCurrentClassLogger();
         public ConcurrentDictionary<string, Player> Players { get; } = new();
         public Dictionary<string, Command> Commands { get; } = [];
-
-        //public Dictionary<string, Item> Items { get; } = [];
+        
         public Dictionary<string, Room> Rooms { get; } = [];
         
         public Server()
         {
             Instance = this;
             InitializeCommands();
+            string executableDirectory = AppContext.BaseDirectory;
+            Logger.Info("Executable directory: {executableDirectory}", executableDirectory);
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+                .SetBasePath(executableDirectory)
+                .AddJsonFile("appsettings.json")
+                .AddUserSecrets<Program>()
+                .Build();
+            var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>();
+            MudContext.SetConnectionString(appSettings!.DatabaseSettings!.ConnectionString!);
             //InitializeItems();
             InitializeWorld();
         }

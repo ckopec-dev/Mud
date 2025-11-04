@@ -1,6 +1,6 @@
 USE [master]
 GO
-/****** Object:  Database [Mud]    Script Date: 11/02/2025 20:45:47 ******/
+/****** Object:  Database [Mud]    Script Date: 11/02/2025 20:47:30 ******/
 CREATE DATABASE [Mud]
  CONTAINMENT = NONE
  ON  PRIMARY 
@@ -77,7 +77,7 @@ ALTER DATABASE [Mud] SET QUERY_STORE = OFF
 GO
 USE [Mud]
 GO
-/****** Object:  Table [dbo].[Item]    Script Date: 11/02/2025 20:45:47 ******/
+/****** Object:  Table [dbo].[Item]    Script Date: 11/02/2025 20:47:30 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON

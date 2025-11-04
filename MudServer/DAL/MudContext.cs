@@ -4,8 +4,10 @@ using MudServer.Settings;
 
 namespace MudServer.DAL
 {
-    public class DataContext : DbContext
+    public class MudContext : DbContext
     {
+        private static string _ConnectionString = String.Empty;
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
@@ -19,8 +21,13 @@ namespace MudServer.DAL
                     .Build();
 
                 string? cstr = configuration.GetSection("AppSettings").Get<AppSettings>()!.DatabaseSettings!.ConnectionString;
-                optionsBuilder.UseSqlServer(cstr);
+                optionsBuilder.UseSqlServer(_ConnectionString);
             }
+        }
+
+        public static void SetConnectionString(string connection)
+        {
+            _ConnectionString = connection;
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
